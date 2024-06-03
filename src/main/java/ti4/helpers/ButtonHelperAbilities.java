@@ -5,17 +5,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.entities.emoji.EmojiUnion;
 import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.requests.restaction.ThreadChannelAction;
-import net.dv8tion.jda.api.utils.FileUpload;
-import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import org.apache.commons.lang3.StringUtils;
 import ti4.buttons.Buttons;
 import ti4.commands.cardsac.ACInfo;
@@ -31,7 +26,6 @@ import ti4.commands.special.SleeperToken;
 import ti4.commands.units.AddUnits;
 import ti4.commands.units.MoveUnits;
 import ti4.commands.units.RemoveUnits;
-import ti4.generator.GenerateTile;
 import ti4.generator.Mapper;
 import ti4.helpers.DiceHelper.Die;
 import ti4.helpers.Units.UnitKey;
@@ -1423,7 +1417,6 @@ public class ButtonHelperAbilities {
         Player player) {
         String planet = buttonID.split("_")[1];
         String amount = "1";
-        TextChannel mainGameChannel = game.getMainGameChannel();
         Tile tile = game.getTile(AliasHandler.resolveTile(planet));
 
         new AddUnits().unitParsing(event, player.getColor(), game.getTile(AliasHandler.resolveTile(planet)), amount + " inf " + planet, game);
@@ -1444,41 +1437,9 @@ public class ButtonHelperAbilities {
             }
 
             if (numInf > 0 || numMechs > 0) {
-                String messageCombat = "Resolve ground combat.";
-                if (!game.isFoWMode()) {
-                    MessageCreateBuilder baseMessageObject = new MessageCreateBuilder().addContent(messageCombat);
-                    String threadName = game.getName() + "-contagion-" + game.getRound() + "-planet-"
-                        + planet
-                        + "-" + player.getFaction() + "-vs-" + player2.getFaction();
-                    mainGameChannel.sendMessage(baseMessageObject.build()).queue(message_ -> {
-                        ThreadChannelAction threadChannel = mainGameChannel.createThreadChannel(threadName,
-                            message_.getId());
-                        threadChannel = threadChannel
-                            .setAutoArchiveDuration(ThreadChannel.AutoArchiveDuration.TIME_1_HOUR);
-                        threadChannel.queue(m5 -> {
-                            List<ThreadChannel> threadChannels = game.getActionsChannel().getThreadChannels();
-                            for (ThreadChannel threadChannel_ : threadChannels) {
-                                if (threadChannel_.getName().equals(threadName)) {
-                                    MessageHelper.sendMessageToChannel(threadChannel_,
-                                        player.getRepresentation(true, true)
-                                            + player2.getRepresentation(true, true)
-                                            + " Please resolve the interaction here.");
-                                    int context = 0;
-                                    FileUpload systemWithContext = GenerateTile.getInstance().saveImage(game,
-                                        context, tile.getPosition(), event);
-                                    MessageHelper.sendMessageWithFile(threadChannel_, systemWithContext,
-                                        "Picture of system", false);
-                                    List<Button> buttons = StartCombat.getGeneralCombatButtons(game,
-                                        tile.getPosition(), player, player2, "ground", event);
-                                    MessageHelper.sendMessageToChannelWithButtons(threadChannel_, "", buttons);
-                                }
-                            }
-                        });
-                    });
-                }
+                StartCombat.startGroundCombat(game, player, player2, tile, event, unitHolder, "-contagion");
                 break;
             }
-
         }
 
         event.getMessage().delete().queue();

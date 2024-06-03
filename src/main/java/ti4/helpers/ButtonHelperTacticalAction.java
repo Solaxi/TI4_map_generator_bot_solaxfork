@@ -436,29 +436,7 @@ public class ButtonHelperTacticalAction {
                     }
                 }
                 if (player != player2) {
-
-                    String threadName = StartCombat.combatThreadName(game, player, player2, tile);
-                    if (!game.isFoWMode()) {
-                        StartCombat.findOrCreateCombatThread(game, game.getActionsChannel(), player,
-                            player2, threadName, tile, event, "space", "space");
-                    } else {
-                        StartCombat.findOrCreateCombatThread(game, player.getPrivateChannel(), player, player2,
-                            threadName, tile, event, "space", "space");
-                        if (player2.isRealPlayer()) {
-                            StartCombat.findOrCreateCombatThread(game, player2.getPrivateChannel(), player2, player,
-                                threadName, tile, event, "space", "space");
-                        }
-                        for (Player player3 : game.getRealPlayers()) {
-                            if (player3 == player2 || player3 == player) {
-                                continue;
-                            }
-                            if (!tile.getRepresentationForButtons(game, player3).contains("(")) {
-                                continue;
-                            }
-                            StartCombat.findOrCreateCombatThread(game, player3.getPrivateChannel(), player3,
-                                player3, threadName, tile, event, "space", "space");
-                        }
-                    }
+                    StartCombat.startSpaceCombat(game, player, player2, tile, event);
                 } else {
                     needPDSCheck = true;
                 }

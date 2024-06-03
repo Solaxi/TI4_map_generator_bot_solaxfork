@@ -2,7 +2,6 @@ package ti4.commands.units;
 
 import com.amazonaws.util.CollectionUtils;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -281,8 +280,11 @@ abstract public class AddRemoveUnits implements Command {
                     }
                 }
                 if (player1 != player2 && !tile.getPosition().equalsIgnoreCase("nombox")) {
-                    StartCombat.findOrCreateCombatThread(game, event.getMessageChannel(), player1, player2, tile,
-                        event, combatType, planetName);
+                    if ("ground".equals(combatType)) {
+                        StartCombat.startGroundCombat(game, player1, player2, tile, event, tile.getUnitHolderFromPlanet(planetName));
+                    } else {
+                        StartCombat.startSpaceCombat(game, player1, player2, tile, event);
+                    }
                 }
             }
         }
